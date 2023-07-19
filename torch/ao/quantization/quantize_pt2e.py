@@ -28,7 +28,7 @@ from torch.ao.quantization.pt2e.quantizer import (  # noqa: F401
     SharedQuantizationSpec,
     DerivedQuantizationSpec,
     QuantizationAnnotation,
-    QNNPackQuantizer,
+    XNNPACKQuantizer,
     EmbeddingQuantizer,
     ComposableQuantizer,
 )
