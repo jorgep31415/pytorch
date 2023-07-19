@@ -466,12 +466,12 @@ class TCPServer {
 
   explicit TCPServer(
       std::uint16_t port,
-      std::unique_ptr<TCPStoreMasterDaemon>&& daemon)
+      std::unique_ptr<BackgroundThread>&& daemon)
       : port_{port}, daemon_{std::move(daemon)} {}
 
  private:
   std::uint16_t port_;
-  std::unique_ptr<TCPStoreMasterDaemon> daemon_;
+  std::unique_ptr<BackgroundThread> daemon_;
 
   // We store weak references to all TCPServers for which the caller requested
   // multi-tenancy.
@@ -488,15 +488,8 @@ std::mutex TCPServer::cache_mutex_{};
 
 std::shared_ptr<TCPServer> TCPServer::start(const TCPStoreOptions& opts) {
   auto startCore = [&opts]() {
-    Socket socket = opts.masterListenFd.has_value()
-        ? Socket::listenFromFd(*opts.masterListenFd, opts.port)
-        : Socket::listen(opts.port);
-
-    std::uint16_t port = socket.port();
-
-    auto daemon = std::make_unique<TCPStoreMasterDaemon>(std::move(socket));
-
-    return std::make_shared<TCPServer>(port, std::move(daemon));
+    auto daemon = create_tcpstore_backend(opts);
+    return std::make_shared<TCPServer>(daemon->port(), std::move(daemon));
   };
 
   std::shared_ptr<TCPServer> server{};
